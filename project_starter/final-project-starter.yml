@@ -36,39 +36,44 @@ Resources:
     # instace profile contains the IAM Role name(s) that we want to associate to our auto scaling EC2 Servers
     # never give too much permissions to your EC2 instances! if they get hacked, the permissions get hacked also!
     # in this example, I create a Role called UdacityS3ReadOnlyC2 and just give it a policy of S3 Read-Only Access
-    # S3ReadOnlyEC2:
-    #     Type: AWS::IAM::Role
-    #     Properties:
-    #     AssumeRolePolicyDocument:
-    #         Version: 2012-10-17
-    #         Statement:
-    #             - Effect: Allow
-    #               Principal:
-    #               Service:
-    #                   - ec2.amazonaws.com
-    #               Action:
-    #                   - sts:AssumeRole
-    #     Path: /
+    UdagramS3Bucket:
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: udagram-bucket-671560802393
 
-    # RolePolicies:
-    #     Type: AWS::IAM::Policy
-    #     Properties:
-    #     PolicyName: AmazonS3ReadOnlyAccess
-    #     PolicyDocument:
-    #         Version: 2012-10-17
-    #         Statement:
-    #             - Effect: Allow
-    #               Action: s3:GetObject
-    #               Resource: arn:aws:s3:::udagram-394406674381/*
-    #     Roles:
-    #         - Ref: S3ReadOnlyEC2
+    S3ReadOnlyEC2:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - ec2.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /
 
-    # ProfileWithRolesForOurApp:
-    #     Type: AWS::IAM::InstanceProfile
-    #     Properties:
-    #     Path: /
-    #     Roles:
-    #         - Ref: S3ReadOnlyEC2
+    RolePolicies:
+        Type: AWS::IAM::Policy
+        Properties:
+            PolicyName: AmazonS3ReadOnlyAccess
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                    - Effect: Allow
+                      Action: s3:GetObject
+                      Resource: !GetAtt UdagramS3Bucket.Arn
+            Roles:
+                - Ref: S3ReadOnlyEC2
+
+    ProfileWithRolesForOurApp:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Path: /
+            Roles:
+                - Ref: S3ReadOnlyEC2
 
     VPC:
         Type: AWS::EC2::VPC
@@ -366,6 +371,6 @@ Outputs:
     # Bonus points for useful outputs!
     # for example, if you create a Load Balancer
     # it's nice to output the URL to it here, so that we don't have to go to the console to get it.
-    URL:
-        Description: The URL of the website
+    UdagramURL:
+        Description: Udagram website URL
         Value: !Join ["", ["http://", !GetAtt UdagramLB.DNSName]]
