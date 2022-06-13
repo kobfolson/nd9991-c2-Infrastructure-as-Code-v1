@@ -36,11 +36,6 @@ Resources:
     # instace profile contains the IAM Role name(s) that we want to associate to our auto scaling EC2 Servers
     # never give too much permissions to your EC2 instances! if they get hacked, the permissions get hacked also!
     # in this example, I create a Role called UdacityS3ReadOnlyC2 and just give it a policy of S3 Read-Only Access
-    UdagramS3Bucket:
-        Type: "AWS::S3::Bucket"
-        Properties:
-            BucketName: udagram-bucket-671560802393
-
     S3ReadOnlyEC2:
         Type: AWS::IAM::Role
         Properties:
@@ -64,7 +59,8 @@ Resources:
                 Statement:
                     - Effect: Allow
                       Action: s3:GetObject
-                      Resource: !GetAtt UdagramS3Bucket.Arn
+                      Resource:
+                          - Fn::ImportValue: !Sub ${EnvironmentName}-UdagramS3Bucket
             Roles:
                 - Ref: S3ReadOnlyEC2
 
@@ -275,20 +271,19 @@ Resources:
     UdagramLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration
         Properties:
+            IamInstanceProfile: !GetAtt ProfileWithRolesForOurApp.Arn
             UserData:
                 Fn::Base64: !Sub |
                     #!/bin/bash
                     sudo apt-get update -y
                     sudo apt-get install apache2 -y
                     sudo systemctl start apache2.service  
-                    cd /var/www/html
-                    echo "Udacity Demo Web Server Up and Running!" > index.html
-            # aws s3 cp s3://udagram-394406674381/udagram.zip .
-            # unzip -o udagram.zip
+                    aws s3 cp s3://udagram-bucket-671560802393/index.html /var/www/html/index.html
+                    sudo systemctl restart apache2.service
             ImageId: ami-0184e674549ab8432
             SecurityGroups:
                 - Ref: UdagramAppSecurityGroup
-            InstanceType: t3.large
+            InstanceType: t3.medium
             BlockDeviceMappings:
                 - DeviceName: "/dev/sdk"
                   Ebs:
@@ -315,7 +310,7 @@ Resources:
                 - !Ref PublicSubnet2
             LaunchConfigurationName:
                 Ref: UdagramLaunchConfig
-            MinSize: 3
+            MinSize: 4
             MaxSize: 5
             TargetGroupARNs:
                 - Ref: UdagramTargetGroup

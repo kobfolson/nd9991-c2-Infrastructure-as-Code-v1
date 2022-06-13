@@ -1,0 +1,17 @@
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+Resources:
+  UdagramS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: udagram-bucket-671560802393
+
+Outputs:
+  UdagramS3Bucket:
+    Description: Udagram App html files
+    Value: !Sub arn:aws:s3:::${UdagramS3Bucket}/*
+    Export:
+      Name: !Sub ${EnvironmentName}-UdagramS3Bucket
