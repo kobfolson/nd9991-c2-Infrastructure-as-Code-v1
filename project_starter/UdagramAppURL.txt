@@ -1,1 +1,6 @@
 http://udagr-udagr-1xmf67whtvzfn-1142878175.us-east-1.elb.amazonaws.com/
+
+
+NOTE: 
+1. udagrams3-bucket.yml with bucket-parameters.json must be run and the index.html file uploaded to bucket first
+2. final-project-starter.yml with server-parameters.json can then be run to get working app.
